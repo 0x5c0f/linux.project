@@ -125,12 +125,8 @@ vm.max_map_count=655360
 EOF
     sysctl -p
 
-#cat >> /etc/security/limits.conf <<EOF
-#
-#*		soft	nofile		65535
-#*		hard	nofile		65535
-#EOF
-#tail -n 2 /etc/security/limits.conf
+sed -i '60a *      soft    nofile      65535\n*      hard    nofile      65535' /etc/security/limits.conf
+tail -n 4 /etc/security/limits.conf 
 }
 
 duser_config(){
@@ -156,29 +152,35 @@ time_config(){
 
 bash_config(){
     # 命令审计
-    if [ ! -d "/var/log/commandAudit" ];then
+    [ -d "/var/log/commandAudit" ] || {
         mkdir /var/log/commandAudit -p
         touch /var/log/commandAudit/audit_`date '+%y-%m-%d'`.log
         chmod 622 /var/log/commandAudit/audit_`date '+%y-%m-%d'`.log
         chattr +a /var/log/commandAudit/audit_`date '+%y-%m-%d'`.log
-    fi
+    }
+
     echo "0 0 * * * root touch /var/log/commandAudit/audit_\`date '+\%y-\%m-\%d'\`.log && chmod 622 /var/log/commandAudit/audit_\`date '+\%y-\%m-\%d'\`.log && chattr +a /var/log/commandAudit/audit_\`date '+\%y-\%m-\%d'\`.log" >> /etc/crontab
-#   cp -v ${base_dir}/shellscript/public_sh/commanAdutid.sh /etc/profile.d/
 
-cat >> /etc/profile.d/commanAdutid.sh <<EOF
-# /etc/profile.d/commanAdutid.sh - set i18n stuff
-# mkdir /var/log/commandAudit -p
-# echo "0 0 * * * root touch /var/log/commandAudit/audit_\`date '+\%y-\%m-\%d'\`.log && chmod 622 /var/log/commandAudit/audit_\`date '+\%y-\%m-\%d'\`.log && chattr +a /var/log/commandAudit/audit_\`date '+\%y-\%m-\%d'\`.log" >> /etc/crontab
-#
 
-TMOUT=600
-HISTSIZE=1000
-HISTFILESIZE=1500
-HISTTIMEFORMAT="%Y%m%d-%H%M%S: "
+    [ -f "${base_dir}/commanAdutid.sh" ]  && {
+        cp -v ${base_dir}/commanAdutid.sh /etc/profile.d/ 
+    } || {
+        cat >> /etc/profile.d/commanAdutid.sh <<EOF
+        # /etc/profile.d/commanAdutid.sh - set i18n stuff
+        # mkdir /var/log/commandAudit -p
+        # echo "0 0 * * * root touch /var/log/commandAudit/audit_\`date '+\%y-\%m-\%d'\`.log && chmod 622 /var/log/commandAudit/audit_\`date '+\%y-\%m-\%d'\`.log && chattr +a /var/log/commandAudit/audit_\`date '+\%y-\%m-\%d'\`.log" >> /etc/crontab
+        #
 
-COMMANDAUDIT_FILE=/var/log/commandAudit/audit_\`date '+%y-%m-%d'\`.log
-PROMPT_COMMAND='{ date "+%y-%m-%d %T ### [\$(whoami)] ### \$(who am i |awk "{print \\\$1\" \"\\\$2\" \"\\\$5}") ### \$(pwd) ### \$(history 1 | { read x cmd; echo "\$cmd"; })"; } >> \$COMMANDAUDIT_FILE'
+        TMOUT=600
+        HISTSIZE=1000
+        HISTFILESIZE=1500
+        HISTTIMEFORMAT="%Y%m%d-%H%M%S: "
+
+        COMMANDAUDIT_FILE=/var/log/commandAudit/audit_\`date '+%y-%m-%d'\`.log
+        PROMPT_COMMAND='{ date "+%y-%m-%d %T ### [\$(whoami)] ### \$(who am i |awk "{print \\\$1\" \"\\\$2\" \"\\\$5}") ### \$(pwd) ### \$(history 1 | { read x cmd; echo "\$cmd"; })"; } >> \$COMMANDAUDIT_FILE'
 EOF
+    }
+
 
 }
 
