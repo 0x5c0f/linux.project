@@ -35,7 +35,8 @@ zbx_version=""
 zbx_server=""
 
 #初始目录,请不要修改
-base_dir=$(cd `dirname $0`; pwd)
+#base_dir=$(cd `dirname $0`; pwd)
+base_dir=$(dirname $(readlink -f "$0"))
 
 flagFile="/root/server.init.executed"
 
