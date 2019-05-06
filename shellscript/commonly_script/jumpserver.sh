@@ -24,7 +24,7 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
 # 远程连接配置文件
-#CONF_PATH="./jumpserver.conf"
+#CONF_PATH="../../config/jumpserver.conf"
 CONF_PATH="/etc/jumpserver.conf"
 
 # 临时状态文件
