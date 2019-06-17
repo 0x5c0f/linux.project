@@ -25,8 +25,10 @@ function str_isNumber(){
 # $1 需要处理的字符串 
 # #2 是否全大写 0: 全部大写(默认) 1: 首字母大写 
 function str_toUpperCase(){
-    local sstr=$1
-    local limit=$2
+    local sstr limit tgt
+
+    sstr=$1
+    limit=$2
 
     [[ ${limit} -eq 1 ]] && {
         tgt=$(eval echo ${sstr^})
@@ -43,8 +45,10 @@ function str_toUpperCase(){
 # $1 需要处理的字符串 
 # #2 是否全小写 0: 全部小写(默认) 1: 首字母小写 
 function str_toLowerCase(){
-    local sstr=$1
-    local limit=$2
+    local sstr limit tgt
+
+    sstr=$1
+    limit=$2
 
     [[ ${limit} -eq 1 ]] && {
         tgt=$(eval echo ${sstr,})
@@ -54,15 +58,17 @@ function str_toLowerCase(){
     }
     echo $tgt
 
-    unset sstr limit tgt
+    #unset sstr limit tgt
 }
 
 ## 将字符串转换为首字母/全反转 
 # $1 需要处理的字符串 
 # #2 是否全部反转 0: 全部反转(默认) 1: 首字母反转 
 function str_toReverseCase(){
-    local sstr=$1 
-    local limit=$2 
+    local sstr limit tgt
+    
+    sstr=$1 
+    limit=$2 
 
     [[ ${limit} -eq 1 ]] && {
         tgt=$(eval echo ${sstr~})
@@ -71,7 +77,7 @@ function str_toReverseCase(){
     }
     echo $tgt
 
-    unset sstr limit tgt
+    #unset sstr limit tgt
 }
 
 
@@ -79,30 +85,37 @@ function str_toReverseCase(){
 # $1 需要判断的字符串 
 function str_length(){
     local sstr=$1
+
     #expr length $sstr  #不能判断长度为0的字符串 
     echo ${#sstr}
-    unset sstr
+    
+    #unset sstr
 } 
 
 ## 字符串分割,返回结果的$@,一般用于组合为数组
 # $1 需要判断的字符串 
 function str_toCharArr(){
-    local sstr=$1 
-    local regex=$2
+    local sstr regex 
+
+    sstr=$1 
+    regex=$2
     eval echo ${sstr//$regex/ }
-    unset sstr regex 
+
+    #unset sstr regex 
 }
 
 ## 字符串位置搜索,未搜索到返回 -1 
 # $1 需要检索的字符串
 # $2 需要检索的字符
 function str_indexOf(){
-    local sstr=$1
-    local chr=$2
+    local sstr chr len 
+
+    sstr=$1
+    chr=$2
     
     len=$(expr index $sstr $chr)
     echo $(eval expr $len - 1)
-    unset sstr chr len
+    #unset sstr chr len
 }
 
 ## 以匹配字符串开始截取 
@@ -110,9 +123,11 @@ function str_indexOf(){
 # $2 开始截取下标 0 开始
 # $3 截取字符串长度 
 function str_split(){
-    local sstr=$1
-    local sIndex=$2
-    local len=$3
+    local sstr sIndex len tgt 
+
+    sstr=$1
+    sIndex=$2
+    len=$3
 
     str_isNumber $len && {
         tgt=$(eval echo ${sstr:$sIndex:$len})
@@ -121,7 +136,7 @@ function str_split(){
     }
     echo $tgt
 
-    unset sstr sIndex len tgt 
+    #unset sstr sIndex len tgt 
 }
 
 
@@ -131,9 +146,11 @@ function str_split(){
 # $3 最长匹配还是最短匹配(0:最短匹配(默认) 1:最长匹配)
 # 
 function str_splitStart(){
-    local sstr=$1
-    local regex=$2
-    local limit=$3 
+    local sstr regex limit tgt
+
+    sstr=$1
+    regex=$2
+    limit=$3 
 
     [[ ${limit} -eq 1 ]] && {
         tgt=$(eval echo ${sstr##$regex})
@@ -143,7 +160,7 @@ function str_splitStart(){
     
     echo "$tgt"
 
-    unset sstr regex limit tgt
+    #unset sstr regex limit tgt
 }
 
 
@@ -153,9 +170,11 @@ function str_splitStart(){
 # $3 最长匹配还是最短匹配(0:最短匹配(默认) 1:最长匹配)
 # 
 function str_splitEnd(){
-    local sstr=$1
-    local regex=$2
-    local limit=$3 
+    local sstr regex limit tgt
+
+    sstr=$1
+    regex=$2
+    limit=$3 
 
     [[ ${limit} -eq 1 ]] && {
         tgt=$(eval echo ${sstr%%$regex})
@@ -164,7 +183,8 @@ function str_splitEnd(){
     }
     
     echo "$tgt"
-    unset sstr regex limit tgt
+
+    #unset sstr regex limit tgt
 }
 
 ## 替换以匹配规则第一个或全部匹配的值,成功返回结果 ,否则返回本身
@@ -174,10 +194,12 @@ function str_splitEnd(){
 # $4 是否全部替换(0: 替换第一个匹配的值(默认) 1: 全部替换 )
 # 
 function str_replaceAll(){
-    local sstr=$1 
-    local regex=$2
-    local reval=$3
-    local limit=$4
+    local sstr regex reval limit tgt
+
+    sstr=$1 
+    regex=$2
+    reval=$3
+    limit=$4
 
     [[ ${limit} -eq 1 ]] && {
         tgt=$(eval echo ${sstr//$regex/$reval})
@@ -185,7 +207,8 @@ function str_replaceAll(){
         tgt=$(eval echo ${sstr/$regex/$reval})
     }
     echo "$tgt"
-    unset sstr regex reval limit tgt
+
+    #unset sstr regex reval limit tgt
 }
 
 ## 替换以匹配规则开头或结尾的值,成功返回结果,否则返回本身
@@ -195,10 +218,12 @@ function str_replaceAll(){
 # $4 是否全部替换(0: 匹配规则开头 1: 以匹配规则结尾 )
 # 
 function str_replace(){
-    local sstr=$1 
-    local regex=$2
-    local reval=$3
-    local limit=$4
+    local sstr regex reval limit tgt 
+
+    sstr=$1 
+    regex=$2
+    reval=$3
+    limit=$4
 
     [[ ${limit} -eq 1 ]] && {
         tgt=$(eval echo ${sstr/%$regex/$reval})
@@ -206,5 +231,6 @@ function str_replace(){
         tgt=$(eval echo ${sstr/#$regex/$reval})
     }
     echo "$tgt"
-    unset sstr regex reval limit tgt 
+    
+    #unset sstr regex reval limit tgt 
 }
