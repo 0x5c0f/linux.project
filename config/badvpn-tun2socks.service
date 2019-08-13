@@ -1,0 +1,13 @@
+[Unit]
+Description=badvpn-tun2socks
+After=network.target
+Requires=socketssh-tun.service
+
+[Service]
+Type=simple
+PIDFile=/run/badvpn-tun2socks.pid
+ExecStart=/usr/local/bin/badvpn-control start
+ExecStopPost=/usr/local/bin/badvpn-control stop
+
+[Install]
+WantedBy=multi-user.target

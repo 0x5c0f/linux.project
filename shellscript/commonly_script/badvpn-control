@@ -1,0 +1,65 @@
+#!/bin/bash
+################################################# 
+#   author      0x5c0f 
+#   date        2019-08-13 
+#   email       1269505840@qq.com 
+#   web         blog.cxd115.me 
+#   version     1.0.0
+#   last update 2019-08-13
+#   descript    Use : ./badvpn-control -h
+################################################# 
+
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+
+# SOCKS server IP 
+SOCKS_SERVER="127.0.0.1"
+# SOCKS port
+SOCKS_PORT="1081"
+# tun dev 
+TUN_NETWORK_DEV="tun0"
+# tun ip prefix 
+TUN_NETWORK_PREFIX="12.0.0"
+# route ip
+TUN_ROUTE_IP=("" "")
+
+badvpn_start(){
+    ip tuntap add dev "${TUN_NETWORK_DEV}" mode tun
+    ip addr add "${TUN_NETWORK_PREFIX}.1/24" dev "${TUN_NETWORK_DEV}"
+    ip link set "${TUN_NETWORK_DEV}" up
+    # add route 
+    for _ip in ${TUN_ROUTE_IP[@]}; do
+        ip route add "${_ip}" via "${TUN_NETWORK_PREFIX}.2"
+    done
+    # start badvpn_tun2socks (https://github.com/ambrop72/badvpn.git)
+    badvpn-tun2socks --tundev "${TUN_NETWORK_DEV}" --netif-ipaddr "${TUN_NETWORK_PREFIX}.2" --netif-netmask 255.255.255.0 --socks-server-addr "${SOCKS_SERVER}:${SOCKS_PORT}"
+}
+
+
+badvpn_stop(){
+    # delete route 
+    for _ip in ${TUN_ROUTE_IP[@]}; do
+        ip route del "${_ip}" via "${TUN_NETWORK_PREFIX}.2"
+    done
+    # delete network dev 
+    ip link set "${TUN_NETWORK_DEV}" down
+    ip addr del "${TUN_NETWORK_PREFIX}.1/24" dev "${TUN_NETWORK_DEV}"
+    ip tuntap del dev "${TUN_NETWORK_DEV}" mode tun
+}
+
+
+main(){
+    case "$1" in
+        "start") 
+            badvpn_start
+        ;;
+        "stop")
+            badvpn_stop
+        ;;
+        *) 
+            echo "$0 start|stop"
+        ;;
+    esac
+    
+}
+main $@ 
