@@ -104,6 +104,13 @@ nginx_install() {
         tar -xzvf nginx-${ngx_version}.tar.gz
 
         cd nginx-${ngx_version}
+        sed -i 's#"1.14.2"#""#g' ./src/core/nginx.h
+        sed -i 's#"NGINX"#"0x5c0f"#g' ./src/core/nginx.h
+        sed -i 's#"nginx/"#"0x5c0f "#g' ./src/core/nginx.h
+        sed -i 's#"Server: nginx"#"Server: 0x5c0f"#g' ./src/http/ngx_http_header_filter_module.c
+        sed -i 's#<center>nginx</center>#<center>0x5c0f</center>#g' ./src/http/ngx_http_special_response.c
+        grep "0x5c0f" ./src/http/ngx_http_header_filter_module.c ./src/http/ngx_http_special_response.c ./src/core/nginx.h 
+
         ./configure --user=www --group=www --with-http_ssl_module --with-http_stub_status_module --with-http_realip_module --prefix=/opt/nginx-${ngx_version}
         make && make install
 
@@ -112,9 +119,9 @@ nginx_install() {
 
         mkdir -p /opt/nginxssl/conf/conf.d -p
 
-        cp -v ${BASE_DIR}/../../config/nginx.php.conf /opt/nginxssl/conf/conf.d/nginx.php.conf.default
-        cp -v ${BASE_DIR}/../../config/nginx.ssl.conf /opt/nginxssl/conf/conf.d/nginx.ssl.conf.default
-        cp -v ${BASE_DIR}/../../config/nginx.conf /opt/nginxssl/conf/
+        cp -v ${BASE_DIR}/../../config/nginx/nginx.php.conf /opt/nginxssl/conf/conf.d/nginx.php.conf.default
+        cp -v ${BASE_DIR}/../../config/nginx/nginx.ssl.conf /opt/nginxssl/conf/conf.d/nginx.ssl.conf.default
+        cp -v ${BASE_DIR}/../../config/nginx/nginx.conf /opt/nginxssl/conf/
 
         /opt/nginxssl/sbin/nginx -t
         #echo "/opt/nginxssl/sbin/nginx" >>/etc/rc.local
@@ -215,7 +222,22 @@ php_install() {
     #    cp -v ${BASE_DIR}/../../config/php-fpm.conf /opt/php-server/etc/php-fpm.d
     #    cp -v ${BASE_DIR}/../../config/php-fpm.www.conf /opt/php-server/etc/php-fpm.d
     cp -v php.ini-production /opt/php-server/etc/php.ini
+    #sed -i 's#disable_functions =#disable_functions = phpinfo#g' /opt/php-server/etc/php.ini
+    #sed -i 's#expose_php = On#expose_php = Off#g' /opt/php-server/etc/php.ini
+
     cp -v /opt/php-server/etc/php-fpm.conf.default /opt/php-server/etc/php-fpm.conf
+    #sed -i 's#;rlimit_files = 1024#rlimit_files = 10240#g' /opt/php-server/etc/php-fpm.conf
+    #sed -i 's#;events.mechanism = epoll#events.mechanism = epoll#g' /opt/php-server/etc/php-fpm.conf
+    
+    cp -v /opt/php-server/etc/php-fpm.d/www.conf.default /opt/php-server/etc/php-fpm.d/www.conf
+    # sed -i 's#pm.max_children = 5#pm.max_children = 50#g' /opt/php-server/etc/php-fpm.d/www.conf
+    # sed -i 's#pm.start_servers = 2#pm.start_servers = 3#g' /opt/php-server/etc/php-fpm.d/www.conf
+    # sed -i 's#pm.min_spare_servers = 1#pm.min_spare_servers = 3#g' /opt/php-server/etc/php-fpm.d/www.conf
+    # sed -i 's#pm.max_spare_servers = 3#pm.max_spare_servers = 6#g' /opt/php-server/etc/php-fpm.d/www.conf
+    # sed -i 's#;pm.process_idle_timeout = 10s;#pm.process_idle_timeout = 10s;#g' /opt/php-server/etc/php-fpm.d/www.conf
+    # sed -i 's#;pm.max_requests = 500#pm.max_requests = 10240#g' /opt/php-server/etc/php-fpm.d/www.conf
+    # sed -i 's#;rlimit_files = 1024#rlimit_files = 10240#g' /opt/php-server/etc/php-fpm.d/www.conf
+
 
     cp -v ${BASE_DIR}/../../config/php-fpm.service /usr/lib/systemd/system/
     systemctl daemon-reload
