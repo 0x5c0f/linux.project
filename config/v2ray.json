@@ -1,0 +1,96 @@
+{
+    "log": {
+        "access": "/var/log/v2ray.access.log",
+        "error": "/var/log/v2ray.error.log",
+        // Log level, one of "debug", "info", "warning", "error", "none"
+        "loglevel": "info"
+    },
+    "inbounds": [
+        // websockt 
+        {
+            "port": 3444,
+            "listen": "0.0.0.0", 
+            "protocol": "vmess",
+            "settings": {
+                "clients": [
+                    {
+                        "id": "xxxxxx-xxxx-xxxx-xxxx-xxxxx",
+                        "alterId": 16 
+                    }
+                ]
+            },
+            "streamSettings": {
+                "network": "ws",
+                "wsSettings": {
+                    "path": "/ray"
+                }
+            }
+        },
+        //  TLS
+        //        {
+        //            "port": 3443, // 建议使用 443 端口
+        //            "protocol": "vmess",
+        //            "settings": {
+        //                "clients": [
+        //                    {
+        //                        "id": "xxxxxx-xxxx-xxxx-xxxx-xxxxx",
+        //                        "alterId": 16
+        //                    }
+        //                ]
+        //            },
+        //            "streamSettings": {
+        //                "network": "tcp",
+        //                "security": "tls", // 启用tls
+        //                "tlsSettings": {
+        //                    "certificates": [
+        //                        {
+        //                            "certificateFile": "/etc/v2ray/v2ray.pem", // 证书文件
+        //                            "keyFile": "/etc/v2ray/v2ray.key" // 密钥文件
+        //                        }
+        //                    ]
+        //                }
+        //            }
+        //        },
+        // kcp 
+        //        {
+        //            "port": 5443,
+        //            "protocol": "vmess",
+        //            "settings": {
+        //                "clients": [
+        //                    {
+        //                        "id": "xxxxxx-xxxx-xxxx-xxxx-xxxxx",
+        //                        "alterId": 16
+        //                    }
+        //                ]
+        //            },
+        //            "streamSettings": {
+        //                "network": "mkcp",
+        //                "kcpSettings": {
+        //                    "uplinkCapacity": 5,
+        //                    "downlinkCapacity": 100,
+        //                    "congestion": true,
+        //                    "header": {
+        //                        "type": "none"
+        //                    }
+        //                }
+        //            }
+        //        },
+        // shadowsocks
+        {
+            "port": 6666,  // 6666-6669 
+            "protocol": "shadowsocks",
+            "settings": {
+                "method": "aes-256-cfb",
+                "password": "passwd",
+                "ota": false,
+                "network": "tcp,udp"
+            }
+        }
+    ],
+    "outbounds": [
+        {
+            "protocol": "freedom",
+            "settings": {}
+        }
+    ]
+}
