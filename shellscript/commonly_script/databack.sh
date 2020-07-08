@@ -28,7 +28,7 @@ debug=0
 encrypt=""
 
 # mysql account
-msyql_username=""
+mysql_username=""
 mysql_password=""
 mysql_host=""
 
@@ -143,7 +143,7 @@ msyql_back(){
   check_arrslen ${#mysql_database[@]} && {
     for key in ${!mysql_database[@]}; do
       echo -e "current database backup >> : ${mysql_database[$key]} "
-      /usr/bin/mysqldump -u${msyql_username} -p${mysql_password} -h${mysql_host} --default-character-set=utf8 --single-transaction -R -E ${mysql_database[$key]} | gzip > ${dbback_path}/${key}-${time}.sql.gz
+      /usr/bin/mysqldump -u${mysql_username} -p${mysql_password} -h${mysql_host} --default-character-set=utf8 --single-transaction -R -E ${mysql_database[$key]} | gzip > ${dbback_path}/${key}-${time}.sql.gz
     done
   }
 }

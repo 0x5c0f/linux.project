@@ -5,7 +5,7 @@
 #   email       1269505840@qq.com 
 #   web         blog.cxd115.me 
 #   version     3.3.0
-#   last update 2019-03-27
+#   last update 2020-03-24
 #   descript    Use : linux.init.server.sh -h
 ################################################# 
 
@@ -27,6 +27,9 @@ default_ftp_path=""
 # 是否云主机(云主机不做ssh优化) 1: 是(默认)， 0: 否 
 is_cloudServer=1
 
+# 是否使用云策略 1：是 ，0: 否(默认)
+is_cloudStrategy=0
+
 # zabbix 配置信息,默认从zabbix svn上获取对应版本编译
 # 以下参数需要同时配置 
 # zabbix 版本号，如: 3.2 
@@ -41,17 +44,17 @@ base_dir=$(dirname $(readlink -f "$0"))
 flagFile="/root/server.init.executed"
 
 precheck(){ 
- 
+
     if [[ "$(whoami)" != "root" ]]; then 
     echo "please run this script as root ." >&2 
     exit 1 
     fi 
- 
+
     if [ -f "$flagFile" ]; then 
     echo "this script had been executed, please do not execute again!!" >&2 
     exit 1 
     fi 
- 
+
     echo -e "\033[31m WARNING! THIS SCRIPT WILL \033[0m\n" 
     echo -e "\033[31m update the system source; \033[0m\n"
     echo -e "\033[31m update basic tools and packages; \033[0m\n" 
@@ -70,7 +73,7 @@ precheck(){
     echo -en "Execution optimization after [ \e[0;31m$i\e[0m ] seconds ...\r"
     sleep 1
     done
- 
+
 } 
 
 source_config(){
@@ -142,7 +145,7 @@ duser_config(){
 
 time_config(){
     # 国外服务器的话，一般是需要将时区改为中国时区，遇到过一些坑，这儿只要不是中国ip，时区强制改为中国时区 
-    curl -s "https://api.ip.la/en?json" | grep "China" >& /dev/null
+    curl -s "https://api.myip.la/en?json" | grep "China" >& /dev/null
     if [ $? -ne 0 ];then
         ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
     fi
@@ -186,23 +189,28 @@ EOF
 }
 
 firewalld_config(){
-    # 重装防火墙为 iptables
-    systemctl stop firewalld.service
-    systemctl disable firewalld.service
-    yum install iptables-services -y
-    if [ ! -d "/opt/sh" ];then 
-        mkdir -p /opt/sh
+    if [ "$is_cloudStrategy" -eq "0" ]; then
+        systemctl is-active firewalld >& /dev/null || {
+            # 处理没有firewalld的情况
+            systemctl stop firewalld.service
+            systemctl disable firewalld.service
+        }
+        # 重装防火墙为 iptables
+        yum install iptables-services -y
+        if [ ! -d "/opt/sh" ];then 
+            mkdir -p /opt/sh
+        fi
+        systemctl enable iptables
     fi
-    systemctl enable iptables
 }
 
 zabbix_config(){
     if [ "$zbx_version" != "" ]; then
         rpm -q subversion >& /dev/null 
         if [ $? -ne 0 ]; then
-          echo -e "Add subversion tools .."
-          sleep 3
-          yum install subversion -y
+        echo -e "Add subversion tools .."
+        sleep 3
+        yum install subversion -y
         fi
 
         rpm -q automake >& /dev/null 
@@ -213,12 +221,12 @@ zabbix_config(){
         fi
 
         if [ ! -d "/opt/software" ]; then
-          mkdir /opt/software/ -p 
+        mkdir /opt/software/ -p 
         fi
 
         egrep "^zabbix" /etc/passwd >& /dev/null  
         if [ $? -ne 0 ]; then  
-          useradd -u 1011 -d /opt/zabbix -s /sbin/nologin zabbix  
+        useradd -u 1011 -d /opt/zabbix -s /sbin/nologin zabbix  
         fi
         svn co svn://svn.zabbix.com/branches/${zbx_version} /opt/software/zabbix_${zbx_version} 
         cd /opt/software/zabbix_${zbx_version} 
@@ -315,25 +323,25 @@ fi
 
 
 choose_fun(){
-  case "$1" in
+case "$1" in
     "duser_config")
-      echo -e "###  \033[32m create default users \033[0m  ###"
-      duser_config
+    echo -e "###  \033[32m create default users \033[0m  ###"
+    duser_config
     ;;
     "vsftpd_config") 
-      echo -e "###  \033[32m create default vsftpd \033[0m  ###"
-      vsftpd_config
+    echo -e "###  \033[32m create default vsftpd \033[0m  ###"
+    vsftpd_config
     ;;
     "zabbix_config")
-      echo -e "###  \033[32m config zabbix  \033[0m  ###"
-      zabbix_config
+    echo -e "###  \033[32m config zabbix  \033[0m  ###"
+    zabbix_config
     ;;
     *) 
-      echo "Use : $0 (vsftpd_config|duser_config|zabbix_config)"
-      echo -e "\t 可选参数: "
-      echo -e "\t\t vsftpd_config|duser_config|zabbix_config|... 可选参数，选择后进行单个优化，未选择执行默认优化"
+    echo "Use : $0 (vsftpd_config|duser_config|zabbix_config)"
+    echo -e "\t 可选参数: "
+    echo -e "\t\t vsftpd_config|duser_config|zabbix_config|... 可选参数，选择后进行单个优化，未选择执行默认优化"
     ;;
-  esac
+esac
 }
 
 main(){ 
@@ -349,8 +357,9 @@ main(){
     fi
     precheck 
 
-    hostname ${init_hostname}
-    echo "${init_hostname}" > /etc/hostname
+    hostnamectl set-hostname ${init_hostname}
+    # hostname ${init_hostname}
+    # echo "${init_hostname}" > /etc/hostname
 
     echo -e "###### \033[32m update the system source; \033[0m ######\n"
     source_config

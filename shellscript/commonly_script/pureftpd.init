@@ -1,0 +1,63 @@
+#!/bin/bash
+
+PURE_FTPD="/usr/local/pureftpd/sbin/pure-ftpd"
+PURE_CONF="/usr/local/pureftpd/etc/pure-ftpd.conf"
+PURE_PID="/var/run/pure-ftpd.pid"
+RETVAL=0
+prog="Pure-FTPd"
+
+start() {
+    echo -n $"Starting $prog... "
+    $PURE_FTPD $PURE_CONF
+    if [ "$?" = 0 ] ; then
+        echo " done"
+    else
+        echo " failed"
+    fi
+}
+
+stop() {
+    echo -n $"Stopping $prog...  "
+    if [ ! -f "$PURE_PID" ]; then
+        echo -n $"$prog is not running."
+        exit 1
+    fi
+    kill `cat $PURE_PID`
+    if [ "$?" = 0 ] ; then
+        echo " done"
+    else
+        echo " failed"
+    fi
+}
+
+restart(){
+    echo $"Restarting $prog..."
+    $0 stop
+    sleep 2
+    $0 start
+}
+
+status(){
+    if [ -f "$PURE_PID" ]; then
+        echo $"$prog is running."
+    else
+        echo $"$prog is not running."
+    fi
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        restart
+        ;;
+    status)
+        status
+        ;;
+  *)
+        echo $"Usage: $0 {start|stop|restart}"
+esac
