@@ -281,6 +281,7 @@ anon_upload_enable=NO
 anon_mkdir_write_enable=NO
 anon_other_write_enable=NO
 anon_world_readable_only=NO
+reverse_lookup_enable=NO
 chroot_local_user=YES
 allow_writeable_chroot=YES
 guest_enable=YES
