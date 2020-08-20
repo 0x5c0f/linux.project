@@ -1,0 +1,82 @@
+#!/data/software/zabbix-4.0.19/zabbix_venv_py3/bin/python3
+# -*- coding: utf-8 -*-
+#################################################
+#   author      0x5c0f
+#   date        2020-04-23
+#   email       1269505840@qq.com
+#   web         blog.cxd115.me
+#   version     1.0.0
+#   last update 2020-04-23
+#   descript    <descript>
+#################################################
+from datetime import datetime
+import requests
+import sys
+import time
+import json
+import hmac
+import hashlib
+import base64
+import urllib.parse
+
+
+class ZabbixMonitor(object):
+    def __init__(self):
+        self.secret = ""
+        self.webhook = ""
+        self.headers = {'Content-Type': 'application/json'}
+        now = datetime.now()
+        self.today = now.strftime('%Y-%m-%d')
+        self.currentTime = now.strftime('[%Y-%m-%d %H:%M:%S]')
+
+    def writelog(self, proname, errcont):
+        errfile = open(
+            '/opt/zabbix-server/logs/' + proname + '.' + self.today + '.log',
+            'a')
+        errfile.write(self.currentTime + ' ' + str(errcont) + '\n')
+        errfile.close()
+
+    def _getSign(self):
+        timestamp = str(round(time.time() * 1000))
+        secret_enc = self.secret.encode('utf-8')
+        string_to_sign = '{}\n{}'.format(timestamp, self.secret)
+        string_to_sign_enc = string_to_sign.encode('utf-8')
+        hmac_code = hmac.new(secret_enc,
+                             string_to_sign_enc,
+                             digestmod=hashlib.sha256).digest()
+        sign = urllib.parse.quote_plus(base64.b64encode(hmac_code))
+        return timestamp, sign
+
+    def sendDding(self, phoneNum, text):
+        timestamp, sign = self._getSign()
+        json_text = {
+            "msgtype": "text",
+            "text": {
+                "content": text
+            },
+            "at": {
+                "atMobiles": [phoneNum],
+                "isAtAll": False  # 是否@所有人
+            }
+        }
+
+        api_url = "%s&timestamp=%s&sign=%s" % (self.webhook.strip('\''),
+                                               str(timestamp), sign)
+        r = requests.post(api_url,
+                          data=json.dumps(json_text),
+                          headers=self.headers).json()
+
+        code = r["errcode"]
+        errmsg = r["errmsg"]
+        # 写入监控告警信息
+        self.writelog("monitorInfo", text)
+        if code == 0:
+            self.writelog("sendInfo", ":消息发送成功 返回数据:%s %s\n" % (code, errmsg))
+        else:
+            self.writelog("sendInfo", ":消息发送失败 返回数据:%s %s\n" % (code, errmsg))
+            exit(3)
+
+
+if __name__ == '__main__':
+    check = ZabbixMonitor()
+    check.sendDding(sys.argv[1], sys.argv[3])
