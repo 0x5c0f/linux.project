@@ -30,6 +30,9 @@ is_cloudServer=1
 # 是否使用云策略 1：是 ，0: 否(默认)
 is_cloudStrategy=0
 
+# 关闭不必要的服务(rpcbind/postfix),1: 关闭(默认) 0:不关闭
+is_closeService=1 
+
 # zabbix 配置信息,默认从zabbix svn上获取对应版本编译
 # 以下参数需要同时配置 
 # zabbix 版本号，如: 3.2 
@@ -64,6 +67,7 @@ precheck(){
     echo -e "\033[31m optimization bash; \033[0m\n" 
     echo -e "\033[31m optimization firewalld; \033[0m\n"  
     echo -e "\033[31m add zabbix agent monitor; \033[0m\n"  
+    echo -e "\033[31m close service; \033[0m\n"
     echo -e "\033[31m update the system ; \033[0m\n" 
 
     read -p "press any key to continue ..." 
@@ -248,12 +252,19 @@ zabbix_config(){
 sshd_config(){
     if [ "$is_cloudServer" -eq "0" ]; then
         cp /etc/ssh/sshd_config /etc/ssh/sshd_config.$(date +"%F"-$RANDOM)
-        #sed -i 's%#PermitRootLogin yes%PermitRootLogin no%' /etc/ssh/sshd_config
+        # 禁止root远程登陆 without-password: 密钥认证,no：禁止任何方式登陆,默认yes
+        #sed -i 's%#PermitRootLogin yes%PermitRootLogin without-password%' /etc/ssh/sshd_config
+        
+        # 连接超时将时间 ClientAliveCountMax * ClientAliveInterval = 秒 
         #sed -i 's%#ClientAliveInterval 0%ClientAliveInterval 360%' /etc/ssh/sshd_config
         #sed -i 's%#ClientAliveCountMax 3%ClientAliveCountMax 3%' /etc/ssh/sshd_config
+        # 不允许密码认证 
         #sed -i 's%PasswordAuthentication yes%PasswordAuthentication no%' /etc/ssh/sshd_config  
 
+        #不允许空密码登录
         sed -i 's%#PermitEmptyPasswords no%PermitEmptyPasswords no%' /etc/ssh/sshd_config
+        
+        # 连接速度优化 
         sed -i 's%#UseDNS yes%UseDNS no%' /etc/ssh/sshd_config
         sed -i 's%GSSAPIAuthentication yes%GSSAPIAuthentication no%' /etc/ssh/sshd_config
         egrep "UseDNS|RootLogin|EmptyPass|GSSAPIAuthentication" /etc/ssh/sshd_config
@@ -320,6 +331,13 @@ EOF
     db_load -T -t hash -f /etc/vsftpd/.vsftpd_login.list /etc/vsftpd/vsftpd_login.db
     #systemctl restart vsftpd
 fi
+}
+
+closeService(){
+    if [ "$is_closeService" -eq "1" ]; then
+        systemctl stop postfix.service rpcbind.service rpcbind.socket
+        systemctl disable postfix.service rpcbind.service rpcbind.socket
+    fi
 }
 
 
@@ -396,6 +414,10 @@ main(){
 
     echo -e "###### \033[32m config zabbix agent; \033[0m ######\n" 
     zabbix_config
+    sleep 3
+
+    echo -e "##### \033[32m close service; \033[0m ######\n"
+    closeService
     sleep 3
 
     echo -e "###### \033[32m update the system ; \033[0m ######\n" 
