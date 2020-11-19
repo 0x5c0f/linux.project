@@ -1,0 +1,20 @@
+<service>
+  <id>fprcserver</id>
+  <name>frpc Server</name>
+  <description>内网穿透</description>
+
+  <workingdirectory>C:\tools\frpc</workingdirectory>
+  <executable>C:\tools\frpc\frpc.exe</executable>
+  <arguments>-c C:\tools\frpc\frpc.ini</arguments>
+
+  <onfailure action="restart" delay="60 sec"/>
+  <onfailure action="restart" delay="120 sec"/>
+
+  <priority>RealTime</priority>
+  <stoptimeout>15 sec</stoptimeout>
+
+  <stopparentprocessfirst>false</stopparentprocessfirst>
+  <startmode>Automatic</startmode>
+
+  <log mode="reset"></log>
+</service>

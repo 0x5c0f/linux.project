@@ -1,0 +1,13 @@
+[Unit]
+Description=Brook - client %i
+After=network.target
+
+[Service]
+Type=simple
+User=cxd
+Group=cxd
+EnvironmentFile=/etc/sysconfig/brook-client
+ExecStart=/usr/local/bin/brook $%i
+
+[Install]
+WantedBy=multi-user.target

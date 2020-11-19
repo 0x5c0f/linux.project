@@ -1,0 +1,2 @@
+servers="servers -l ':5110 <token>'"
+wsserver="wsserver -l :5120 -p <token> --path /brook"

@@ -1,5 +1,6 @@
 #!/bin/bash
 # sudo yum install mailx
+# /opt/zabbix-server/share/zabbix/alertscripts
 FILE=/tmp/mailtmp.txt
 echo "$3">$FILE
 

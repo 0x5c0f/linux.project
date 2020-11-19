@@ -1,0 +1,15 @@
+[Unit]
+Description=screego
+Documentation=https://github.com/screego/server
+Documentation=https://screego.net/#/proxy?id=nginx
+After=network.target
+Wants=network.target
+
+[Service]
+WorkingDirectory=/opt/screego
+ExecStart=/opt/screego/screego serve
+Restart=on-abnormal
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

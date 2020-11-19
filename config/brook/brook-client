@@ -1,0 +1,2 @@
+client="client -s <ip>:5110 -p <token> --socks5 127.0.0.1:1085"
+wsclient="wsclient -s ws://<ip>:5120/brook -p <token> --socks5 127.0.0.1:1085"

@@ -7,7 +7,7 @@
 #   web         blog.cxd115.me
 #   version     1.0.0
 #   last update 2020-04-23
-#   descript    <descript>
+#   descript    /opt/zabbix-server/share/zabbix/alertscripts
 #################################################
 from datetime import datetime
 import requests

@@ -12,7 +12,8 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-# 授权 PROCESS, REPLICATION *.*
+# 授权 
+# GRANT Process,Replication client ON *.* TO 'zabbixm'@'127.0.0.1'  Identified by "<passwd>" WITH GRANT OPTION;
 MYSQL_USER='zabbixm'
 MYSQL_PWD='<passwd>'
 MYSQL_HOST='127.0.0.1'
