@@ -1,0 +1,16 @@
+[Unit]
+Description=zabbix 4.0
+After=syslog.target network.target remote-fs.target
+
+[Service]
+Type=forking
+Environment="JAVA=/opt/jdk1.8.0_271/bin/java"
+
+ExecStart=/opt/zabbix-server/sbin/zabbix_java/startup.sh
+ExecStop=/opt/zabbix-server/sbin/zabbix_java/shutdown.sh
+PrivateTmp=true
+User=zabbix
+Group=zabbix
+
+[Install]
+WantedBy=multi-user.target
