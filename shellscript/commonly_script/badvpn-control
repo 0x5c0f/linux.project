@@ -13,15 +13,15 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
 # SOCKS server IP 
-SOCKS_SERVER="127.0.0.1"
+SOCKS_SERVER="${SOCKS_HOST}"
 # SOCKS port
-SOCKS_PORT="1081"
+SOCKS_PORT="${SOCKS_PORT}"
 # tun dev 
 TUN_NETWORK_DEV="tun0"
 # tun ip prefix 
 TUN_NETWORK_PREFIX="12.0.0"
 # route ip
-TUN_ROUTE_IP=("" "")
+TUN_ROUTE_IP=(${SOCKS_ROUTE})
 
 badvpn_start(){
     ip tuntap add dev "${TUN_NETWORK_DEV}" mode tun
