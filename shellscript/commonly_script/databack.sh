@@ -1,6 +1,11 @@
 #!/bin/bash
-# last update 2019-04-23 1269505840@qq.com
-# version: 3.2.2 
+################################################# 
+#   author      0x5c0f 
+#   date        2019-04-23 
+#   email       1269505840@qq.com 
+#   web         blog.0x5c0f.cc 
+#   version     3.4.0
+#   last update 2021-02-03
 # discript : 
 #     备份源定义,格式(["key"]="value") key: 备份名称   value: 备份路径(文件、目录）或数据库名称 , 多个由空格隔开  
 #            code_path   : 代码备份定义，每天备份一次
@@ -8,7 +13,9 @@
 #            config_path : 配置文件备份定义,每一个月备份一次
 #            mysql_database: 数据库备份定义，每天备份一次
 #     base_path     : 备份文件存放根路径
-#     back_ignore   : 备份忽略配置文件，不存在自动创建并添加默认忽略内容( *.log *.bak *.back *-back *-bak log logs bak back temp tmp)
+#     back_ignore   : 备份忽略配置文件，不存在自动创建并添加默认忽略内容
+#          ( *.log *.bak *.back *-back *-bak log logs bak back temp tmp)
+# 
 # use : bash web.backup.sh -h
 # 00 01 * * * /bin/bash /opt/sh/web.backup.sh >> /var/log/backlogs.log 2>&1  
 # yum install p7zip
@@ -17,6 +24,7 @@
 # https://github.com/iikira/BaiduPCS-Go/releases 
 # BaiduPCS-Go login 
 #
+################################################# 
 
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
@@ -61,7 +69,7 @@ bdy_path=""
 back_ignore="${base_path}back_ignore.txt"
 
 # current back time
-time=$(date +"%Y%m%d%H")
+TIME=$(date +"%Y%m%d%H")
 
 ### source path config start (default app 2 month once,config 1 month once ,other every day) ###
 declare -A code_path=()
@@ -132,7 +140,7 @@ code_back(){
   check_local_dir ${codebak_path}
   check_arrslen ${#code_path[@]} && {
     for key in ${!code_path[@]}; do
-      file_Compress ${code_path[$key]} ${codebak_path}/${key}-${time}
+      file_Compress ${code_path[$key]} ${codebak_path}/${TIME}-${key}
       sleep 1
     done 
   }
@@ -143,7 +151,7 @@ msyql_back(){
   check_arrslen ${#mysql_database[@]} && {
     for key in ${!mysql_database[@]}; do
       echo -e "current database backup >> : ${mysql_database[$key]} "
-      /usr/bin/mysqldump -u${mysql_username} -p${mysql_password} -h${mysql_host} --default-character-set=utf8 --single-transaction -R -E ${mysql_database[$key]} | gzip > ${dbback_path}/${key}-${time}.sql.gz
+      /usr/bin/mysqldump -u${mysql_username} -p${mysql_password} -h${mysql_host} --default-character-set=utf8 --single-transaction -R -E ${mysql_database[$key]} | gzip > ${dbback_path}/${TIME}-${key}.sql.gz
     done
   }
 }
@@ -157,7 +165,7 @@ app_back(){
       if [ $day -eq 1 ] || [ ${debug} -eq 1 ]; then
         #every 6 month back
         for key in ${!app_path[@]}; do
-          file_Compress ${app_path[$key]} ${appback_path}/${key}-${time} 
+          file_Compress ${app_path[$key]} ${appback_path}/${TIME}-${key} 
           sleep 1
         done  
       else
@@ -175,8 +183,8 @@ config_back(){
     day=$(date +"%d")
     if [ $day -eq 1 ] || [ ${debug} -eq 1 ]; then
       for key in ${!config_path[@]}; do
-        #tar czf ${configback_path}/${key}-${time}.tgz --exclude-from=${back_ignore} ${config_path[$key]}
-        file_Compress ${config_path[$key]} ${configback_path}/${key}-${time} 
+        #tar czf ${configback_path}/${TIME}-${key}.tgz --exclude-from=${back_ignore} ${config_path[$key]}
+        file_Compress ${config_path[$key]} ${configback_path}/${TIME}-${key} 
         sleep 1
       done
     else
@@ -194,13 +202,13 @@ awscli_sync(){
       file_path="${base_path}${_dir}"
       if [ -d ${file_path} ] ; then
         #cd ${file_path}
-        for file in $(ls ${file_path}|grep ${time}); do
+        for file in $(ls ${file_path}|grep ${TIME}); do
           ## awscli sync 
           echo "====>: awscli sync s3://${aws_storage}/${aws_path} "
           echo -e "$(md5sum ${file_path}/${file})\n" >> ${file_path}/README.md5sum 
           /bin/aws s3 cp ${file_path}/${file} s3://${aws_storage}/${aws_path}/${_dir}/
         done
-        echo -e "====== ${time} end ======\n" >> ${file_path}/README.md5sum
+        echo -e "====== ${TIME} end ======\n" >> ${file_path}/README.md5sum
         /bin/aws s3 cp ${file_path}/README.md5sum s3://${aws_storage}/${aws_path}/${_dir}/
       fi    
     done
@@ -216,13 +224,13 @@ baiduyun_sync(){
       file_path="${base_path}${_dir}"
        if [ -d ${file_path} ] ; then
         #cd ${file_path}
-        for file in $(ls ${file_path}|grep ${time}); do
+        for file in $(ls ${file_path}|grep ${TIME}); do
           ## baiduyun sync 
           echo "====>: BaiduPCS-Go upload ${file_path}/${file}  ${bdy_path}${_dir}/"
           echo -e "$(md5sum ${file_path}/${file})\n" >> ${file_path}/README.md5sum 
           BaiduPCS-Go upload ${file_path}/${file}  ${bdy_path}${_dir}/
         done
-        echo -e "====== ${time} end ======\n" >> ${file_path}/README.md5sum
+        echo -e "====== ${TIME} end ======\n" >> ${file_path}/README.md5sum
           BaiduPCS-Go upload ${file_path}/README.md5sum ${bdy_path}${_dir}/
       fi
     done
@@ -259,13 +267,13 @@ ftp_sync(){
       file_path="${base_path}${_dir}"
       if [ -d ${file_path} ] ; then
         #cd ${file_path}
-        for file in $(ls ${file_path}|grep ${time}); do
+        for file in $(ls ${file_path}|grep ${TIME}); do
           ##FTP  starting###
           echo "=======>: ${file_path}/${file}"
           echo -e "$(md5sum ${file_path}/${file})\n" >> ${file_path}/README.md5sum 
           FTP_TRANSFER "${file_path}/${file}" "${ftp_root_path}/${_dir}"
         done
-        echo -e "====== ${time} end ======\n" >> ${file_path}/README.md5sum
+        echo -e "====== ${TIME} end ======\n" >> ${file_path}/README.md5sum
         FTP_TRANSFER "${file_path}/README.md5sum" "${ftp_root_path}/${_dir}"
       fi
     done
@@ -308,7 +316,7 @@ choose_fun(){
       echo -e "eg: $0 code_back"
       echo -e "\t 可选参数: "
       echo -e "\t\t (0|1) debug参数(默认: 0)，是否取消备份时间限制，应用程序每六月备份一次，配置文件每月备份一次"
-      echo -e "\t\t code_back|msyql_back|... 可选参数，选择后进行单个备份，未选择备份所有已配置项目"
+      echo -e "\t\t code_back|mysql_back|... 可选参数，选择后进行单个备份，未选择备份所有已配置项目"
     ;;
   esac
 }
