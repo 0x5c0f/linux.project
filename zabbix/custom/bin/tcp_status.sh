@@ -1,4 +1,3 @@
-# cat /etc/zabbix/zabbix_agentd.d/tcp_conn_status.sh
 #!/bin/bash
 #this script is used to get tcp and udp connetion status
 #tcp status
