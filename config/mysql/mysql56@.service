@@ -1,0 +1,22 @@
+[Unit]
+Description=MySQL Server 5.6 %i
+After=network.target
+After=syslog.target
+
+[Service]
+User=mysql
+Group=mysql
+
+PermissionsStartOnly=true
+ExecStart=/opt/mysql56/bin/mysqld_safe --defaults-file=/data/mysql56/%i/etc/my.cnf
+
+ExecStop=/bin/kill $MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
+
+TimeoutSec=600
+LimitNOFILE=65535
+Restart=always
+PrivateTmp=false
+
+[Install]
+WantedBy=multi-user.target
