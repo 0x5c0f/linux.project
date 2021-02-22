@@ -58,8 +58,8 @@ if __name__ == "__main__":
             if _check_type == check_type:
                 dataArrT.append(domain_name)
                 data["data"].append({
-                    "#DOMAIN_NAME": domain_name,
-                    "#CHECK_TYPE": check_type
+                    "{#DOMAIN_NAME}": domain_name,
+                    "{#CHECK_TYPE}": check_type
                 })
 
         json_data = json.dumps(data)
