@@ -8,6 +8,5 @@
 │   ├── commonly_script     # 常用的脚本文件 
 │   └── practice_script     # 测试的一些配置文件 
 ├── software                # 脚本需要引用程序时的目录 
-├── template                # 基础的模板文件 
 └── zabbix                  # 编写或引用的完整功能模块
 ```
