@@ -4,7 +4,7 @@
 #   date        2021-01-11
 #   email       1269505840@qq.com
 #   web         blog.cxd115.me
-#   version     1.0.0
+#   version     1.1.0
 #   last update 2021-01-11
 #   descript    Use : ./ssl.status.sh -h
 #################################################
@@ -34,10 +34,15 @@ check_ssl() {
 }
 
 _getCheckURes(){
-    curl -L --connect-timeout 6 -o /dev/null -s -w "{\"domain_host\":\"${1}\", \"http_code\": \"%{http_code}\",\"time_pretransfer\": \"%{time_pretransfer}\",\"time_starttransfer\":\"%{time_starttransfer}\",\"speed_download\":\"%{speed_download}\",\"time_namelookup\":\"%{time_namelookup}\",\"time_connect\":\"%{time_connect}\",\"time_total\":\"%{time_total}\"}\n" $1
+    curl -L --connect-timeout 3 -m 9 -k -o /dev/null -s -w "{\"domain_host\":\"${1}\", \"http_code\": \"%{http_code}\",\"time_pretransfer\": \"%{time_pretransfer}\",\"time_starttransfer\":\"%{time_starttransfer}\",\"speed_download\":\"%{speed_download}\",\"time_namelookup\":\"%{time_namelookup}\",\"time_connect\":\"%{time_connect}\",\"time_total\":\"%{time_total}\"}\n" $1
 }
 
 _init() {
+
+    if [[ -f "${siteStmp}.tmp" ]]; then
+      # 上一次没有检查完就暂时不进行下次检测了
+      exit 0
+    fi
 
     # 重复的只需要检查一次就可以了,自动发现会传参数自行区分
     domain_hosts=($(awk '/^https?/{print $1}' ${domain_host_cfg} |sort | uniq ))   
@@ -46,11 +51,19 @@ _init() {
        echo $(_getCheckURes $1) 
     else
         for hosts in "${domain_hosts[@]}"; do
-            echo $(_getCheckURes ${hosts}) >>"${siteStmp}.tmp"
+            echo $(_getCheckURes ${hosts}) >>"${siteStmp}.tmp" &
             sleep 0.3
         done
-        cat "${siteStmp}.tmp" > ${siteStmp}
-        rm -rf "${siteStmp}.tmp"
+        # 等待检测完成
+        while true; do
+          res=$(ps -ef|grep "%\{http_code\}|grep -v grep")
+          ps -ef|grep -E "[%]\{http_code}"  || {
+            cat "${siteStmp}.tmp" > ${siteStmp}
+            rm -rf "${siteStmp}.tmp"
+            sleep 2
+            break
+          }
+        done
     fi
 }
 
