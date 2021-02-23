@@ -96,7 +96,8 @@ main() {
     *)
         # $0 host port http_code
         ## 获取站点状态
-        _checkSiteInfo "${domain_host}" "${check_type}"
+        echo "功能禁用."
+        # _checkSiteInfo "${domain_host}" "${check_type}"
         ;;
     esac
 }
